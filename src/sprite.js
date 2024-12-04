@@ -1,3 +1,5 @@
+import spritImg from "./assets/running-sprite-sheet.png";
+
 var canvas = document.getElementById("canvas"),
   readout = document.getElementById("readout"),
   context = canvas.getContext("2d"),
@@ -63,7 +65,7 @@ canvas.onmousemove = function (e) {
   updateReadout(loc.x, loc.y);
 };
 
-spritesheet.src = "running-sprite-sheet.png";
+spritesheet.src = spritImg;
 spritesheet.onload = function (e) {
   drawSpritesheet();
 };

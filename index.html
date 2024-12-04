@@ -5,9 +5,29 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vite + TS</title>
+    <style>
+      body {
+        background: #dddddd;
+      }
+      #canvas {
+        position: absolute;
+        left: 0px;
+        top: 20px;
+        margin: 20px;
+        background: #ffffff;
+        border: thin inset rgba(100, 150, 230, 0.5);
+        cursor: pointer;
+      }
+      #readout {
+        margin-top: 10px;
+        margin-left: 15px;
+        color: blue;
+      }
+    </style>
   </head>
   <body>
+    <div id="readout"></div>
     <canvas id="canvas" width="800" height="600"></canvas>
-    <script type="module" src="/src/main.ts"></script>
+    <script type="module" src="/src/sprite.js"></script>
   </body>
 </html>
