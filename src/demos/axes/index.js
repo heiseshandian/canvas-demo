@@ -86,15 +86,28 @@ function drawAxes() {
   }
 }
 
-function drawArcs() {
-  ctx.moveTo(100, 100);
-  ctx.arc(200, 200, 100, 0, Math.PI);
-  ctx.stroke();
+function roundRect(cornerX, cornerY, width, height, cornerRadius) {
+  ctx.moveTo(cornerX + cornerRadius, cornerY);
+  ctx.arcTo(
+    cornerX + width,
+    cornerY,
+    cornerX + width,
+    cornerY + height,
+    cornerRadius
+  );
+  ctx.arcTo(
+    cornerX + width,
+    cornerY + height,
+    cornerX,
+    cornerY + height,
+    cornerRadius
+  );
+  ctx.arcTo(cornerX, cornerY + height, cornerX, cornerY, cornerRadius);
+  ctx.arcTo(cornerX, cornerY, cornerX + cornerRadius, cornerY, cornerRadius);
 }
 
 function draw() {
   drawGrid();
-  drawArcs();
 }
 
 draw();
