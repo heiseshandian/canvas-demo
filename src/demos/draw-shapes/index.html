@@ -45,6 +45,10 @@
         top: 25px;
       }
 
+      #polygonSizeContainer {
+        display: none;
+      }
+
       #canvas {
         background: #ffffff;
         cursor: pointer;
@@ -66,7 +70,18 @@
         <option value="line">line</option>
         <option value="circle">circle</option>
         <option value="rect">rect</option>
+        <option value="polygon">polygon</option>
       </select>
+      <div id="polygonSizeContainer">
+        Polygon Size:
+        <input
+          type="number"
+          name="polygonSize"
+          value="3"
+          min="3"
+          id="polygonSize"
+        />
+      </div>
       Stroke color:
       <select id="strokeStyleSelect">
         <option value="red">red</option>

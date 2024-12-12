@@ -20,6 +20,8 @@ const eraseAllButton = document.getElementById("eraseAllButton");
  * @type {HTMLInputElement}
  */
 const shapeSelect = document.getElementById("shapeSelect");
+const polygonSizeContainer = document.getElementById("polygonSizeContainer");
+const polygonSize = document.getElementById("polygonSize");
 
 function drawGrid(stepX = 10, stepY = 10, color = "#bbb") {
   ctx.save();
@@ -102,6 +104,32 @@ function updateRects() {
   ctx.stroke();
 }
 
+function updatePolygons() {
+  const { offsetX: initX, offsetY: initY } = mouseDownPosition;
+  const { offsetX, offsetY } = mouseMovePosition;
+
+  const centerX = (initX + offsetX) / 2;
+  const centerY = (initY + offsetY) / 2;
+  const radius =
+    Math.sqrt(
+      Math.pow(Math.abs(offsetX - initX), 2) +
+        Math.pow(Math.abs(offsetY - initY), 2)
+    ) / 2;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.translate(centerX, centerY);
+  const sides = polygonSize.value;
+  ctx.moveTo(radius * Math.cos(0), radius * Math.sin(0));
+  for (let i = 1; i < sides; i++) {
+    const angle = ((Math.PI * 2) / sides) * i;
+    ctx.lineTo(radius * Math.cos(angle), radius * Math.sin(angle));
+  }
+  ctx.closePath();
+  ctx.stroke();
+  ctx.restore();
+}
+
 function updateShapes() {
   if (!mouseDownPosition || !mouseMovePosition) {
     return;
@@ -112,6 +140,7 @@ function updateShapes() {
     line: updateLines,
     circle: updateCircles,
     rect: updateRects,
+    polygon: updatePolygons,
   };
 
   const draw = map[shape] || map.line;
@@ -139,6 +168,14 @@ function updateGuideWires() {
   ctx.stroke();
 
   ctx.restore();
+}
+
+function showPolygonSizeContainer() {
+  polygonSizeContainer.style.display = "inline-block";
+}
+
+function hidePolygonSizeContainer() {
+  polygonSizeContainer.style.display = "none";
 }
 
 function bindEvents() {
@@ -183,6 +220,14 @@ function bindEvents() {
   eraseAllButton.addEventListener("click", () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawGrid();
+  });
+
+  shapeSelect.addEventListener("change", (e) => {
+    if (e.target.value === "polygon") {
+      showPolygonSizeContainer();
+    } else {
+      hidePolygonSizeContainer();
+    }
   });
 }
 
