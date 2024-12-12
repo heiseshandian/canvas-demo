@@ -86,9 +86,15 @@ function drawAxes() {
   }
 }
 
+function drawArcs() {
+  ctx.moveTo(100, 100);
+  ctx.arc(200, 200, 100, 0, Math.PI);
+  ctx.stroke();
+}
+
 function draw() {
   drawGrid();
-  drawAxes();
+  drawArcs();
 }
 
 draw();

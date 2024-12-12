@@ -4,6 +4,9 @@
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
 /**
  * @type {HTMLInputElement}
  */
@@ -13,6 +16,10 @@ const guidewireCheckbox = document.getElementById("guidewireCheckbox");
  */
 const strokeStyleSelect = document.getElementById("strokeStyleSelect");
 const eraseAllButton = document.getElementById("eraseAllButton");
+/**
+ * @type {HTMLInputElement}
+ */
+const shapeSelect = document.getElementById("shapeSelect");
 
 function drawGrid(stepX = 10, stepY = 10, color = "#bbb") {
   ctx.save();
@@ -56,10 +63,6 @@ function restoreDrawingSurface() {
 }
 
 function updateLines() {
-  if (!mouseDownPosition || !mouseMovePosition) {
-    return;
-  }
-
   const { offsetX: initX, offsetY: initY } = mouseDownPosition;
   const { offsetX, offsetY } = mouseMovePosition;
 
@@ -67,6 +70,38 @@ function updateLines() {
   ctx.moveTo(initX, initY);
   ctx.lineTo(offsetX, offsetY);
   ctx.stroke();
+}
+
+function updateCircles() {
+  const { offsetX: initX, offsetY: initY } = mouseDownPosition;
+  const { offsetX, offsetY } = mouseMovePosition;
+
+  const centerX = (initX + offsetX) / 2;
+  const centerY = (initY + offsetY) / 2;
+  const radius =
+    Math.sqrt(
+      Math.pow(Math.abs(offsetX - initX), 2) +
+        Math.pow(Math.abs(offsetY - initY), 2)
+    ) / 2;
+
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+  ctx.stroke();
+}
+
+function updateShapes() {
+  if (!mouseDownPosition || !mouseMovePosition) {
+    return;
+  }
+
+  const shape = shapeSelect.value;
+  const map = {
+    line: updateLines,
+    circle: updateCircles,
+  };
+
+  const draw = map[shape] || map.line;
+  draw();
 }
 
 function updateGuideWires() {
@@ -117,13 +152,13 @@ function bindEvents() {
     };
 
     restoreDrawingSurface();
-    updateLines();
+    updateShapes();
     updateGuideWires();
   });
 
   canvas.addEventListener("mouseup", (e) => {
     restoreDrawingSurface();
-    updateLines();
+    updateShapes();
     resetDrawingVariables();
   });
 
