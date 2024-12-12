@@ -89,6 +89,19 @@ function updateCircles() {
   ctx.stroke();
 }
 
+function updateRects() {
+  const { offsetX: initX, offsetY: initY } = mouseDownPosition;
+  const { offsetX, offsetY } = mouseMovePosition;
+
+  ctx.beginPath();
+  ctx.moveTo(initX, initY);
+  ctx.lineTo(offsetX, initY);
+  ctx.lineTo(offsetX, offsetY);
+  ctx.lineTo(initX, offsetY);
+  ctx.closePath();
+  ctx.stroke();
+}
+
 function updateShapes() {
   if (!mouseDownPosition || !mouseMovePosition) {
     return;
@@ -98,6 +111,7 @@ function updateShapes() {
   const map = {
     line: updateLines,
     circle: updateCircles,
+    rect: updateRects,
   };
 
   const draw = map[shape] || map.line;
