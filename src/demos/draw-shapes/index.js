@@ -1,4 +1,7 @@
 import { Polygon } from "./shapes/polygon.js";
+import { Circle } from "./shapes/circle.js";
+import { Line } from "./shapes/line.js";
+import { Rect } from "./shapes/rect.js";
 
 /**
  * @type {HTMLCanvasElement}
@@ -113,17 +116,19 @@ function redraw() {
   drawGrid();
 }
 
-function updateLines() {
+function updateLines(shouldCacheShapes) {
   const { offsetX: initX, offsetY: initY } = mouseDownPosition;
   const { offsetX, offsetY } = mouseMovePosition;
 
-  ctx.beginPath();
-  ctx.moveTo(initX, initY);
-  ctx.lineTo(offsetX, offsetY);
-  ctx.stroke();
+  const line = new Line(initX, initY, offsetX, offsetY, ctx.strokeStyle);
+  line.stroke(ctx);
+
+  if (shouldCacheShapes) {
+    cachedShapes.line.push(line);
+  }
 }
 
-function updateCircles() {
+function updateCircles(shouldCacheShapes) {
   const { offsetX: initX, offsetY: initY } = mouseDownPosition;
   const { offsetX, offsetY } = mouseMovePosition;
 
@@ -135,25 +140,26 @@ function updateCircles() {
         Math.pow(Math.abs(offsetY - initY), 2)
     ) / 2;
 
-  ctx.beginPath();
-  ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-  ctx.stroke();
+  const circle = new Circle(centerX, centerY, radius, ctx.strokeStyle);
+  circle.stroke(ctx);
+  if (shouldCacheShapes) {
+    cachedShapes.circle.push(circle);
+  }
 }
 
-function updateRects() {
+function updateRects(shouldCacheShapes) {
   const { offsetX: initX, offsetY: initY } = mouseDownPosition;
   const { offsetX, offsetY } = mouseMovePosition;
 
-  ctx.beginPath();
-  ctx.moveTo(initX, initY);
-  ctx.lineTo(offsetX, initY);
-  ctx.lineTo(offsetX, offsetY);
-  ctx.lineTo(initX, offsetY);
-  ctx.closePath();
-  ctx.stroke();
+  const rect = new Rect(initX, initY, offsetX, offsetY, ctx.strokeStyle);
+  rect.stroke(ctx);
+
+  if (shouldCacheShapes) {
+    cachedShapes.rect.push(rect);
+  }
 }
 
-function updatePolygons(shouldCacheShapes = false) {
+function updatePolygons(shouldCacheShapes) {
   const { offsetX: initX, offsetY: initY } = mouseDownPosition;
   const { offsetX, offsetY } = mouseMovePosition;
 
@@ -246,6 +252,9 @@ function bindEvents() {
 
   canvas.addEventListener("mousemove", (e) => {
     if (!isDrawing && !isDragging) {
+      return;
+    }
+    if (isDragging && !draggingShape) {
       return;
     }
 
