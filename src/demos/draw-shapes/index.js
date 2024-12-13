@@ -1,8 +1,10 @@
+import { Polygon } from "./shapes/polygon.js";
+
 /**
  * @type {HTMLCanvasElement}
  */
 const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
+const ctx = canvas.getContext("2d", { willReadFrequently: true });
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -22,6 +24,7 @@ const eraseAllButton = document.getElementById("eraseAllButton");
 const shapeSelect = document.getElementById("shapeSelect");
 const polygonSizeContainer = document.getElementById("polygonSizeContainer");
 const polygonSize = document.getElementById("polygonSize");
+const editModeCheckbox = document.getElementById("editModeCheckbox");
 
 function drawGrid(stepX = 10, stepY = 10, color = "#bbb") {
   ctx.save();
@@ -49,11 +52,21 @@ let isDrawing = false;
 let mouseDownPosition = null;
 let mouseMovePosition = null;
 
+let isDragging = false;
+let draggingShape = null;
+let draggingOffsetX = null;
+let draggingOffsetY = null;
+
 function resetDrawingVariables() {
   drawingSurfaceImageData = null;
   isDrawing = false;
   mouseDownPosition = null;
   mouseMovePosition = null;
+
+  isDragging = false;
+  draggingShape = null;
+  draggingOffsetX = null;
+  draggingOffsetY = null;
 }
 
 function saveDrawingSurface() {
@@ -62,6 +75,42 @@ function saveDrawingSurface() {
 
 function restoreDrawingSurface() {
   ctx.putImageData(drawingSurfaceImageData, 0, 0);
+}
+
+const cachedShapes = {
+  line: [],
+  circle: [],
+  rect: [],
+  polygon: [],
+};
+
+function updateDraggingShape(offsetX, offsetY) {
+  const selectedShape = shapeSelect.value;
+  const shapes = cachedShapes[selectedShape];
+
+  for (const shape of shapes) {
+    shape.createPath(ctx);
+    if (ctx.isPointInPath(offsetX, offsetY)) {
+      draggingShape = shape;
+      draggingOffsetX = offsetX - shape.x;
+      draggingOffsetY = offsetY - shape.y;
+      break;
+    }
+  }
+}
+
+function redrawAllCachedShapes() {
+  Object.keys(cachedShapes).forEach((type) => {
+    const shapes = cachedShapes[type];
+    shapes.forEach((shape) => shape.stroke(ctx));
+  });
+}
+
+function redraw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  redrawAllCachedShapes();
+  drawGrid();
 }
 
 function updateLines() {
@@ -104,7 +153,7 @@ function updateRects() {
   ctx.stroke();
 }
 
-function updatePolygons() {
+function updatePolygons(shouldCacheShapes = false) {
   const { offsetX: initX, offsetY: initY } = mouseDownPosition;
   const { offsetX, offsetY } = mouseMovePosition;
 
@@ -116,21 +165,21 @@ function updatePolygons() {
         Math.pow(Math.abs(offsetY - initY), 2)
     ) / 2;
 
-  ctx.save();
-  ctx.beginPath();
-  ctx.translate(centerX, centerY);
-  const sides = polygonSize.value;
-  ctx.moveTo(radius * Math.cos(0), radius * Math.sin(0));
-  for (let i = 1; i < sides; i++) {
-    const angle = ((Math.PI * 2) / sides) * i;
-    ctx.lineTo(radius * Math.cos(angle), radius * Math.sin(angle));
+  const polygon = new Polygon(
+    centerX,
+    centerY,
+    radius,
+    polygonSize.value,
+    strokeStyleSelect.value
+  );
+  polygon.stroke(ctx);
+
+  if (shouldCacheShapes) {
+    cachedShapes.polygon.push(polygon);
   }
-  ctx.closePath();
-  ctx.stroke();
-  ctx.restore();
 }
 
-function updateShapes() {
+function updateShapes(shouldCacheShapes = false) {
   if (!mouseDownPosition || !mouseMovePosition) {
     return;
   }
@@ -144,7 +193,7 @@ function updateShapes() {
   };
 
   const draw = map[shape] || map.line;
-  draw();
+  draw(shouldCacheShapes);
 }
 
 function updateGuideWires() {
@@ -181,18 +230,22 @@ function hidePolygonSizeContainer() {
 function bindEvents() {
   canvas.addEventListener("mousedown", (e) => {
     const { offsetX, offsetY } = e;
-    isDrawing = true;
-
     mouseDownPosition = {
       offsetX,
       offsetY,
     };
 
-    saveDrawingSurface();
+    if (editModeCheckbox.checked) {
+      isDragging = true;
+      updateDraggingShape(offsetX, offsetY);
+    } else {
+      isDrawing = true;
+      saveDrawingSurface();
+    }
   });
 
   canvas.addEventListener("mousemove", (e) => {
-    if (!isDrawing) {
+    if (!isDrawing && !isDragging) {
       return;
     }
 
@@ -202,14 +255,24 @@ function bindEvents() {
       offsetY,
     };
 
-    restoreDrawingSurface();
-    updateShapes();
-    updateGuideWires();
+    if (editModeCheckbox.checked) {
+      draggingShape.move(offsetX - draggingOffsetX, offsetY - draggingOffsetY);
+      redraw();
+    } else {
+      restoreDrawingSurface();
+      updateShapes();
+      updateGuideWires();
+    }
   });
 
   canvas.addEventListener("mouseup", (e) => {
-    restoreDrawingSurface();
-    updateShapes();
+    if (editModeCheckbox.checked) {
+      redraw();
+    } else {
+      restoreDrawingSurface();
+      updateShapes(true);
+    }
+
     resetDrawingVariables();
   });
 
