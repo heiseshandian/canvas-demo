@@ -56,10 +56,15 @@ function drawAxes() {
   ctx.lineTo(100.5, 100);
   ctx.stroke();
 
+  ctx.textBaseline = "middle";
+  ctx.textAlign = "center";
+  ctx.font = "18px serif";
+
   const y = canvas.height - 100 + 2.5;
   for (let x = 100.5 + 10; x <= canvas.width - 100; x += 10) {
     ctx.beginPath();
     if ((x - 100.5) % 50 === 0) {
+      ctx.fillText((x - 100.5) / 10, x, y + 20);
       ctx.moveTo(x, y - 10);
       ctx.lineTo(x, y + 10);
     } else {
@@ -75,6 +80,7 @@ function drawAxes() {
   for (let y = start - 10; y >= 100; y -= 10) {
     ctx.beginPath();
     if ((y - start) % 50 === 0) {
+      ctx.fillText((start - y) / 10, x - 20, y);
       ctx.moveTo(x - 10, y);
       ctx.lineTo(x + 10, y);
     } else {
@@ -108,6 +114,7 @@ function roundRect(cornerX, cornerY, width, height, cornerRadius) {
 
 function draw() {
   drawGrid();
+  drawAxes();
 }
 
 draw();
