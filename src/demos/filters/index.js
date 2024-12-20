@@ -3,7 +3,10 @@
  */
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d", { willReadFrequently: true });
+
 const resetBtn = document.getElementById("resetBtn");
+const negativeFilter = document.getElementById("negativeFilter");
+const blackAndWhite = document.getElementById("blackAndWhite");
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -15,19 +18,32 @@ img.onload = () => {
 img.src = "./countrypath.jpg";
 
 let isDrawing = false;
+/**
+ * @type {ImageData}
+ */
 let imgData = null;
 let mouseDownPosition = null;
-let selectedRect = null;
+let imageDataCopy = ctx.createImageData(canvas.width, canvas.height);
 
 function resetVariables() {
   isDrawing = false;
   imgData = null;
   mouseDownPosition = null;
-  selectedRect = null;
+  imageDataCopy = ctx.createImageData(canvas.width, canvas.height);
+}
+
+function copyCanvasPixels() {
+  for (let i = 0; i < imgData.data.length; i += 4) {
+    imageDataCopy.data[i] = imgData.data[i];
+    imageDataCopy.data[i + 1] = imgData.data[i + 1];
+    imageDataCopy.data[i + 2] = imgData.data[i + 2];
+    imageDataCopy.data[i + 3] = imgData.data[i + 3] / 10;
+  }
 }
 
 function saveDrawingSurface() {
   imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  copyCanvasPixels();
 }
 
 function restoreDrawingSurface() {
@@ -62,39 +78,48 @@ function bindEvents() {
     const { offsetX, offsetY } = e;
     const width = offsetX - mouseDownPosition.offsetX - ctx.lineWidth * 4;
     const height = offsetY - mouseDownPosition.offsetY - ctx.lineWidth * 4;
-    selectedRect = {
-      x: mouseDownPosition.offsetX + ctx.lineWidth * 2,
-      y: mouseDownPosition.offsetY + ctx.lineWidth * 2,
-      width,
-      height,
-    };
 
-    const imageData = ctx.getImageData(
-      selectedRect.x,
-      selectedRect.y,
-      selectedRect.width,
-      selectedRect.height
-    );
     restoreDrawingSurface();
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the original canvas
-    ctx.putImageData(imageData, 0, 0); // Draw the selected imageData
-    ctx.drawImage(
-      canvas,
+
+    console.log(imageDataCopy);
+
+    ctx.putImageData(
+      imageDataCopy,
       0,
       0,
-      selectedRect.width,
-      selectedRect.height,
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    ); // Stretch the selected imageData to cover the whole canvas
+      mouseDownPosition.offsetX,
+      mouseDownPosition.offsetY,
+      width,
+      height
+    );
     resetVariables();
   });
 
   resetBtn.addEventListener("click", () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  });
+
+  negativeFilter.addEventListener("click", () => {
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    for (let i = 0; i < imgData.data.length; i += 4) {
+      imgData.data[i] = 255 - imgData.data[i];
+      imgData.data[i + 1] = 255 - imgData.data[i + 1];
+      imgData.data[i + 2] = 255 - imgData.data[i + 2];
+    }
+    ctx.putImageData(imgData, 0, 0);
+  });
+
+  blackAndWhite.addEventListener("click", () => {
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    for (let i = 0; i < imgData.data.length; i += 4) {
+      const avg =
+        (imgData.data[i] + imgData.data[i + 1] + imgData.data[i + 2]) / 3;
+      imgData.data[i] = avg;
+      imgData.data[i + 1] = avg;
+      imgData.data[i + 2] = avg;
+    }
+    ctx.putImageData(imgData, 0, 0);
   });
 }
 
