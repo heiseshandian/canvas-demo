@@ -4,29 +4,34 @@
  */
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
+const offscreenCanvas = document.createElement("canvas");
+const offscreenCtx = offscreenCanvas.getContext("2d");
 
 canvas.width = 600;
 canvas.height = 480;
 
+offscreenCanvas.width = canvas.width;
+offscreenCanvas.height = canvas.height;
+
 function drawGrid(stepX = 10, stepY = 10, color = "#bbb") {
-  ctx.save();
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 0.5;
+  offscreenCtx.save();
+  offscreenCtx.strokeStyle = color;
+  offscreenCtx.lineWidth = 0.5;
 
   for (let x = 0.5; x < canvas.width; x += stepX) {
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, canvas.height);
-    ctx.stroke();
+    offscreenCtx.beginPath();
+    offscreenCtx.moveTo(x, 0);
+    offscreenCtx.lineTo(x, canvas.height);
+    offscreenCtx.stroke();
   }
 
   for (let y = 0.5; y < canvas.height; y += stepY) {
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(canvas.width, y);
-    ctx.stroke();
+    offscreenCtx.beginPath();
+    offscreenCtx.moveTo(0, y);
+    offscreenCtx.lineTo(canvas.width, y);
+    offscreenCtx.stroke();
   }
-  ctx.restore();
+  offscreenCtx.restore();
 }
 
 const centerX = canvas.width / 2;
@@ -38,88 +43,111 @@ const shortTickSize = 5;
 const innerRadius = outerRadius - ringSize - longTickSize;
 
 function drawOuterRing() {
-  ctx.save();
+  offscreenCtx.save();
 
-  ctx.beginPath();
-  ctx.fillStyle = "rgba(100, 140, 230, 0.1)";
-  ctx.arc(centerX, centerY, outerRadius, 0, Math.PI * 2);
-  ctx.arc(centerX, centerY, outerRadius - ringSize, 0, Math.PI * 2, true);
-  ctx.fill();
+  offscreenCtx.beginPath();
+  offscreenCtx.fillStyle = "rgba(100, 140, 230, 0.1)";
+  offscreenCtx.arc(centerX, centerY, outerRadius, 0, Math.PI * 2);
+  offscreenCtx.arc(
+    centerX,
+    centerY,
+    outerRadius - ringSize,
+    0,
+    Math.PI * 2,
+    true
+  );
+  offscreenCtx.fill();
 
-  ctx.beginPath();
-  ctx.strokeStyle = "rgba(100, 140, 230, 1)";
-  ctx.arc(centerX, centerY, outerRadius, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.arc(centerX, centerY, outerRadius - ringSize, 0, Math.PI * 2, true);
-  ctx.stroke();
+  offscreenCtx.beginPath();
+  offscreenCtx.strokeStyle = "rgba(100, 140, 230, 1)";
+  offscreenCtx.arc(centerX, centerY, outerRadius, 0, Math.PI * 2);
+  offscreenCtx.stroke();
+  offscreenCtx.beginPath();
+  offscreenCtx.arc(
+    centerX,
+    centerY,
+    outerRadius - ringSize,
+    0,
+    Math.PI * 2,
+    true
+  );
+  offscreenCtx.stroke();
 
-  ctx.restore();
+  offscreenCtx.restore();
 }
 
 function drawInnerCircle() {
-  ctx.save();
-  ctx.beginPath();
-  ctx.strokeStyle = "#bbb";
-  ctx.arc(centerX, centerY, innerRadius, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.restore();
+  offscreenCtx.save();
+  offscreenCtx.beginPath();
+  offscreenCtx.strokeStyle = "#bbb";
+  offscreenCtx.arc(centerX, centerY, innerRadius, 0, Math.PI * 2);
+  offscreenCtx.stroke();
+  offscreenCtx.restore();
 }
 
 function drawTicks() {
-  ctx.save();
-  ctx.translate(centerX, centerY);
+  offscreenCtx.save();
+  offscreenCtx.translate(centerX, centerY);
 
   const radius = outerRadius - ringSize;
   const long = radius - longTickSize;
   const short = radius - shortTickSize;
   for (let i = 0; i < 360; i += 5) {
     const angle = (Math.PI / 180) * i;
-    ctx.beginPath();
-    ctx.moveTo(radius * Math.cos(angle), radius * Math.sin(angle));
+    offscreenCtx.beginPath();
+    offscreenCtx.moveTo(radius * Math.cos(angle), radius * Math.sin(angle));
 
     if (i % 2 === 0) {
-      ctx.lineTo(long * Math.cos(angle), long * Math.sin(angle));
+      offscreenCtx.lineTo(long * Math.cos(angle), long * Math.sin(angle));
     } else {
-      ctx.lineTo(short * Math.cos(angle), short * Math.sin(angle));
+      offscreenCtx.lineTo(short * Math.cos(angle), short * Math.sin(angle));
     }
 
-    ctx.stroke();
+    offscreenCtx.stroke();
   }
 
-  ctx.restore();
+  offscreenCtx.restore();
 }
 
 function drawNumbers() {
-  ctx.save();
-  ctx.translate(centerX, centerY);
+  offscreenCtx.save();
+  offscreenCtx.translate(centerX, centerY);
 
-  ctx.font = "14px serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillStyle = "blue";
+  offscreenCtx.font = "14px serif";
+  offscreenCtx.textAlign = "center";
+  offscreenCtx.textBaseline = "middle";
+  offscreenCtx.fillStyle = "blue";
 
   const radius = innerRadius - 10;
   for (let i = 0; i < 360; i += 30) {
     const angle = (Math.PI / 180) * i;
-    ctx.fillText(i, radius * Math.cos(angle), radius * Math.sin(angle));
+    offscreenCtx.fillText(
+      i,
+      radius * Math.cos(angle),
+      radius * Math.sin(angle)
+    );
   }
 
-  ctx.restore();
+  offscreenCtx.restore();
 }
 
 function drawAnnotations() {
+  offscreenCtx.save();
+  offscreenCtx.translate(centerX, centerY);
+
+  offscreenCtx.fillStyle = "rgba(80, 190, 240, 0.6)";
+  offscreenCtx.strokeStyle = "#bbb";
+  offscreenCtx.beginPath();
+  offscreenCtx.arc(0, 0, 10, 0, Math.PI * 2);
+  offscreenCtx.fill();
+  offscreenCtx.stroke();
+
+  offscreenCtx.restore();
+}
+
+function drawMovingAngles(angle = (Math.PI / 180) * -45) {
   ctx.save();
   ctx.translate(centerX, centerY);
-
-  ctx.fillStyle = "rgba(80, 190, 240, 0.6)";
-  ctx.strokeStyle = "#bbb";
-  ctx.beginPath();
-  ctx.arc(0, 0, 10, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
-
-  const angle = (Math.PI / 180) * -45;
   const outerCenterX = outerRadius * Math.cos(angle);
   const outerCenterY = outerRadius * Math.sin(angle);
 
@@ -134,7 +162,6 @@ function drawAnnotations() {
   ctx.arc(outerCenterX, outerCenterY, 5, 0, Math.PI * 2);
   ctx.fill();
   ctx.stroke();
-
   ctx.restore();
 }
 
@@ -150,5 +177,17 @@ function draw() {
   drawGrid();
   drawDial();
 }
-
 draw();
+
+let velocity = 0.01;
+let angle = 0;
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(offscreenCanvas, 0, 0);
+  requestAnimationFrame(animate);
+
+  angle += velocity;
+  drawMovingAngles(angle);
+}
+
+animate();
