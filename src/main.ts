@@ -1,5 +1,5 @@
 import Canvas from "./canvas";
-import { drawClock } from "./demos/clock";
+import { drawClock } from "./clock";
 import "./style.css";
 
 const WIDTH = 800;
