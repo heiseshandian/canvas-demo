@@ -1,4 +1,7 @@
 // 获取 Canvas 上下文
+
+import { AnimationTimer } from "../shared/animation-timer.js";
+
 /**
  * @type {HTMLCanvasElement}
  */
@@ -179,15 +182,17 @@ function draw() {
 }
 draw();
 
-let velocity = 0.01;
-let angle = 0;
-function animate() {
+function fixBackground() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(offscreenCanvas, 0, 0);
-  requestAnimationFrame(animate);
-
-  angle += velocity;
-  drawMovingAngles(angle);
 }
 
-animate();
+const duration = 30 * 1000;
+let velocity = Math.PI / duration;
+const timer = new AnimationTimer(() => {
+  fixBackground();
+  const elapsed = Math.min(duration, timer.getElapsedTime());
+  drawMovingAngles(elapsed * velocity);
+}, duration);
+
+timer.start();
