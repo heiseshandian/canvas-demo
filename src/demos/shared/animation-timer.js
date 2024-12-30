@@ -1,12 +1,10 @@
 export class AnimationTimer {
   /**
    *
-   * @param {function} onUpdate animation logic
-   * @param {number} duration duration of the animation in milliseconds
+   * @param {number} duration
    */
-  constructor(onUpdate, duration) {
+  constructor(duration = Infinity) {
     this.duration = duration;
-    this.onUpdate = onUpdate;
 
     this.reset();
   }
@@ -15,7 +13,6 @@ export class AnimationTimer {
     if (!this.running) {
       this.startTime = performance.now() - this.elapsed;
       this.running = true;
-      this.tick();
     }
   }
 
@@ -25,21 +22,6 @@ export class AnimationTimer {
       this.elapsed = performance.now() - this.startTime;
     }
   }
-
-  tick = () => {
-    if (this.running) {
-      this.elapsed = performance.now() - this.startTime;
-      if (this.elapsed >= this.duration) {
-        this.stop();
-      }
-
-      if (this.onUpdate) {
-        this.onUpdate(this);
-      }
-
-      this.requestId = requestAnimationFrame(this.tick);
-    }
-  };
 
   getElapsedTime() {
     if (this.running) {
@@ -57,7 +39,5 @@ export class AnimationTimer {
     this.startTime = null;
     this.elapsed = 0;
     this.running = false;
-
-    this.requestId = null;
   }
 }

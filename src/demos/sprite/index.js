@@ -1,4 +1,4 @@
-import { Sprite } from "./sprite.js";
+import { Sprite } from "../shared/sprite.js";
 
 /**
  * @type {HTMLCanvasElement}
