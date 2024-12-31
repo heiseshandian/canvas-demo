@@ -19,7 +19,7 @@ ctx.globalAlpha = 0.9;
 const longmao = new Sprite("longmao", new ImagePainter("./longmao.png"));
 longmao.left = 100;
 longmao.top = 350;
-longmao.width = 100;
+longmao.width = 130;
 longmao.height = 200;
 
 const longmaoShape = new SpriteShape(longmao);
@@ -132,10 +132,12 @@ function showCollisionMsg() {
 
 function detectCollision() {
   for (const p of shapes) {
-    if (p !== movingShape && movingShape.collidesWith(p)) {
-      console.log(p);
-      showCollisionMsg();
-      break;
+    if (p !== movingShape) {
+      const mtv = movingShape.collidesWith(p);
+      if (mtv.overlap !== 0) {
+        showCollisionMsg();
+        break;
+      }
     }
   }
 }

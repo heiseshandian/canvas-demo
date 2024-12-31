@@ -2,6 +2,7 @@ import { Shape } from "./shape.js";
 import { Vector } from "./vector.js";
 import { Projection } from "./projection.js";
 import { polygonCollidesWithCircle } from "./utils.js";
+import { MinimumTranslationVector } from "./minimum-translation-vector.js";
 
 export class Circle extends Shape {
   constructor(
@@ -49,8 +50,8 @@ export class Circle extends Shape {
       const distance = Math.sqrt(
         Math.pow(this.x - shape.x, 2) + Math.pow(this.y - shape.y, 2)
       );
-
-      return distance < this.radius + shape.radius;
+      const overlap = this.radius + shape.radius - distance;
+      return new MinimumTranslationVector(undefined, Math.max(0, overlap));
     }
     return polygonCollidesWithCircle(shape, this);
   }

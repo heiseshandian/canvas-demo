@@ -22,7 +22,7 @@ export class Polygon extends Shape {
       return polygonCollidesWithCircle(this, shape);
     }
 
-    return !this.separationOnAxes(axes.concat(this.getAxes()), shape);
+    return this.minimumTranslationVector(axes.concat(this.getAxes()), shape);
   }
 
   getAxes() {

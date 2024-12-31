@@ -1,7 +1,30 @@
+import { MinimumTranslationVector } from "./minimum-translation-vector.js";
+
 export class Shape {
   collidesWith(otherShape) {
-    const axes = this.getAxes().concat(otherShape.getAxes());
-    return !this.separationOnAxes(axes, otherShape);
+    throw new Error("Should be implemented by sub class");
+  }
+
+  minimumTranslationVector(axes, otherShape) {
+    let axisWithMinOverlap = null;
+    let minOverlap = Infinity;
+
+    for (let i = 0; i < axes.length; i++) {
+      const axis = axes[i];
+      const p1 = this.project(axis);
+      const p2 = otherShape.project(axis);
+      const overlap = p1.overlap(p2);
+
+      if (overlap === 0) {
+        return new MinimumTranslationVector(undefined, 0);
+      }
+      if (overlap < minOverlap) {
+        minOverlap = overlap;
+        axisWithMinOverlap = axis;
+      }
+    }
+
+    return new MinimumTranslationVector(axisWithMinOverlap, minOverlap);
   }
 
   separationOnAxes(axes, otherShape) {
