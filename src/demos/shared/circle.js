@@ -3,6 +3,7 @@ import { Vector } from "./vector.js";
 import { Projection } from "./projection.js";
 import { polygonCollidesWithCircle } from "./utils.js";
 import { MinimumTranslationVector } from "./minimum-translation-vector.js";
+import { BoundingBox } from "./bounding-box.js";
 
 export class Circle extends Shape {
   constructor(
@@ -59,5 +60,10 @@ export class Circle extends Shape {
   project(axis) {
     const dotProduct = new Vector(this.x, this.y).dotProduct(axis);
     return new Projection(dotProduct - this.radius, dotProduct + this.radius);
+  }
+
+  getBoundingBox() {
+    const { x, y, radius } = this;
+    return new BoundingBox(x - radius, y - radius, radius * 2, radius * 2);
   }
 }

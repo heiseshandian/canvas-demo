@@ -2,6 +2,7 @@ import { Shape } from "./shape.js";
 import { Vector } from "./vector.js";
 import { Projection } from "./projection.js";
 import { polygonCollidesWithCircle } from "./utils.js";
+import { BoundingBox } from "./bounding-box.js";
 
 export class Polygon extends Shape {
   constructor(points, strokeStyle = "black", fillStyle = "black") {
@@ -79,5 +80,21 @@ export class Polygon extends Shape {
       ctx.lineTo(points[i].x, points[i].y);
     }
     ctx.closePath();
+  }
+
+  getBoundingBox() {
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = Infinity;
+    let maxY = Infinity;
+
+    this.points.forEach(({ x, y }) => {
+      minX = Math.min(minX, x);
+      minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x);
+      maxY = Math.max(maxY, y);
+    });
+
+    return new BoundingBox(minX, minY, maxX - minX, maxY - minY);
   }
 }

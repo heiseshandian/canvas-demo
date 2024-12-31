@@ -1,10 +1,6 @@
 import { MinimumTranslationVector } from "./minimum-translation-vector.js";
 
 export class Shape {
-  collidesWith(otherShape) {
-    throw new Error("Should be implemented by sub class");
-  }
-
   minimumTranslationVector(axes, otherShape) {
     let axisWithMinOverlap = null;
     let minOverlap = Infinity;
@@ -40,14 +36,6 @@ export class Shape {
     return false; // No separating axis found
   }
 
-  getAxes() {
-    throw new Error("Should be implemented by the sub class");
-  }
-
-  project(axis) {
-    throw new Error("Should be implemented by the sub class");
-  }
-
   /**
    *
    * @param {RenderingContext} ctx
@@ -70,5 +58,21 @@ export class Shape {
     this.createPath(ctx);
     ctx.fill();
     ctx.restore();
+  }
+
+  collidesWith(otherShape) {
+    throw new Error("Should be implemented by the sub class");
+  }
+
+  getAxes() {
+    throw new Error("Should be implemented by the sub class");
+  }
+
+  project(axis) {
+    throw new Error("Should be implemented by the sub class");
+  }
+
+  getBoundingBox() {
+    throw new Error("Should be implemented by the sub class");
   }
 }
