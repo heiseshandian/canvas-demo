@@ -1,3 +1,4 @@
+import { Circle } from "../shared/circle.js";
 import { Point } from "../shared/point.js";
 import { Polygon } from "../shared/polygon.js";
 
@@ -36,9 +37,12 @@ const polygons = [
     new Point(400, 300),
   ],
 ].map((points) => new Polygon(points, colors[i++], colors[i++]));
+const circles = [new Circle(400, 400, 50), new Circle(500, 500, 50)];
+
+const shapes = polygons.concat(circles);
 
 function redraw() {
-  polygons.forEach((p) => {
+  shapes.forEach((p) => {
     p.fill(ctx);
     p.stroke(ctx);
   });
@@ -55,7 +59,7 @@ function resetMovingVariables() {
 }
 
 function updateMovingShape(x, y) {
-  for (const p of polygons) {
+  for (const p of shapes) {
     p.createPath(ctx);
     if (ctx.isPointInPath(x, y)) {
       movingShape = p;
@@ -73,7 +77,7 @@ function showCollisionMsg() {
 }
 
 function detectCollision() {
-  for (const p of polygons) {
+  for (const p of shapes) {
     if (p !== movingShape && movingShape.collidesWith(p)) {
       showCollisionMsg();
       break;

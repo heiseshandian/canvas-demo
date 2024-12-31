@@ -1,11 +1,7 @@
 export class Shape {
   collidesWith(otherShape) {
     const axes = this.getAxes().concat(otherShape.getAxes());
-    console.log("Testing collision with axes:", axes);
-
-    const result = !this.separationOnAxes(axes, otherShape);
-    console.log("Collision result:", result);
-    return result;
+    return !this.separationOnAxes(axes, otherShape);
   }
 
   separationOnAxes(axes, otherShape) {
@@ -13,11 +9,6 @@ export class Shape {
       const axis = axes[i];
       const p1 = this.project(axis);
       const p2 = otherShape.project(axis);
-
-      console.log(`Axis ${i}:`, axis);
-      console.log("Projection 1:", p1);
-      console.log("Projection 2:", p2);
-      console.log("Overlap:", p1.overlaps(p2));
 
       if (!p1.overlaps(p2)) {
         return true; // Found a separating axis
@@ -32,5 +23,29 @@ export class Shape {
 
   project(axis) {
     throw new Error("Should be implemented by the sub class");
+  }
+
+  /**
+   *
+   * @param {RenderingContext} ctx
+   */
+  stroke(ctx) {
+    ctx.save();
+    ctx.strokeStyle = this.strokeStyle;
+    this.createPath(ctx);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  /**
+   *
+   * @param {RenderingContext} ctx
+   */
+  fill(ctx) {
+    ctx.save();
+    ctx.fillStyle = this.fillStyle;
+    this.createPath(ctx);
+    ctx.fill();
+    ctx.restore();
   }
 }

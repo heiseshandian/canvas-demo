@@ -65,20 +65,4 @@ export class Polygon extends Shape {
     }
     ctx.closePath();
   }
-
-  stroke(ctx) {
-    ctx.save();
-    ctx.strokeStyle = this.strokeStyle;
-    this.createPath(ctx);
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  fill(ctx) {
-    ctx.save();
-    ctx.fillStyle = this.fillStyle;
-    this.createPath(ctx);
-    ctx.fill();
-    ctx.restore();
-  }
 }
