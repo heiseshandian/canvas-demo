@@ -1,6 +1,7 @@
 import { Shape } from "./shape.js";
 import { Vector } from "./vector.js";
 import { Projection } from "./projection.js";
+import { polygonCollidesWithCircle } from "./utils.js";
 
 export class Polygon extends Shape {
   constructor(points, strokeStyle = "black", fillStyle = "black") {
@@ -8,6 +9,20 @@ export class Polygon extends Shape {
     this.points = points;
     this.strokeStyle = strokeStyle;
     this.fillStyle = fillStyle;
+  }
+
+  /**
+   *
+   * @param {Shape} shape
+   */
+  collidesWith(shape) {
+    const axes = shape.getAxes();
+    if (!axes) {
+      // circle
+      return polygonCollidesWithCircle(this, shape);
+    }
+
+    return !this.separationOnAxes(axes.concat(this.getAxes()), shape);
   }
 
   getAxes() {

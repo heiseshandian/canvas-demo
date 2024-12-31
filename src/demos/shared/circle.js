@@ -1,6 +1,7 @@
 import { Shape } from "./shape.js";
 import { Vector } from "./vector.js";
 import { Projection } from "./projection.js";
+import { polygonCollidesWithCircle } from "./utils.js";
 
 export class Circle extends Shape {
   constructor(
@@ -51,34 +52,11 @@ export class Circle extends Shape {
 
       return distance < this.radius + shape.radius;
     }
-    return polygonCollidesWithCircle(this, shape);
+    return polygonCollidesWithCircle(shape, this);
   }
 
   project(axis) {
     const dotProduct = new Vector(this.x, this.y).dotProduct(axis);
     return new Projection(dotProduct - this.radius, dotProduct + this.radius);
   }
-}
-
-function polygonCollidesWithCircle(circle, polygon) {
-  const points = polygon.points;
-  let minDistance = Infinity;
-  let closestPoint = null;
-  points.forEach((p) => {
-    const distance = Math.sqrt(
-      Math.pow(circle.x - p.x, 2),
-      Math.sqrt(circle.y - p.y, 2)
-    );
-    if (distance < minDistance) {
-      minDistance = distance;
-      closestPoint = p;
-    }
-  });
-
-  const edgeAxis = new Vector(circle.x, circle.y)
-    .edge(new Vector(closestPoint.x, closestPoint.y))
-    .normalize();
-  const axes = polygon.getAxes().concat(edgeAxis);
-
-  return !polygon.separationOnAxes(axes, circle);
 }
