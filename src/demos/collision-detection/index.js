@@ -1,6 +1,9 @@
 import { Circle } from "../shared/circle.js";
 import { Point } from "../shared/point.js";
 import { Polygon } from "../shared/polygon.js";
+import { Sprite } from "../shared/sprite.js";
+import { ImagePainter } from "../shared/image-painter.js";
+import { SpriteShape } from "../shared/sprite-shape.js";
 
 /**
  * @type {HTMLCanvasElement}
@@ -12,6 +15,57 @@ canvas.width = 800;
 canvas.height = 600;
 
 ctx.globalAlpha = 0.9;
+
+const longmao = new Sprite("longmao", new ImagePainter("./longmao.png"));
+longmao.left = 100;
+longmao.top = 350;
+longmao.width = 100;
+longmao.height = 200;
+
+const longmaoShape = new SpriteShape(longmao);
+
+const ball = new Sprite("rect", {
+  paint(sprite, ctx) {
+    const { left, top, width, height } = sprite;
+    const centerX = left + width / 2;
+    const centerY = top + height / 2;
+    const radius = width / 2;
+
+    // 创建径向渐变 (Radial Gradient)
+    const gradient = ctx.createRadialGradient(
+      centerX - radius / 3, // 光源 X 坐标
+      centerY - radius / 3, // 光源 Y 坐标
+      radius / 6, // 光源半径
+      centerX, // 外圈 X 坐标
+      centerY, // 外圈 Y 坐标
+      radius // 外圈半径
+    );
+
+    // 定义渐变色
+    gradient.addColorStop(0, "white"); // 光源颜色
+    gradient.addColorStop(0.5, "#87CEFA"); // 中间颜色（球体主色）
+    gradient.addColorStop(1, "#4682B4"); // 边缘阴影颜色
+
+    // 绘制圆形
+    ctx.save();
+    ctx.beginPath();
+    ctx.shadowColor = "black";
+    ctx.shadowOffsetX = 10;
+    ctx.shadowOffsetY = 10;
+    ctx.shadowBlur = 20;
+    ctx.fillStyle = gradient;
+    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+    ctx.fillStyle = gradient;
+    ctx.fill();
+    ctx.restore();
+  },
+});
+ball.left = 500;
+ball.top = 400;
+ball.width = 40;
+ball.height = 40;
+
+const rectShape = new SpriteShape(ball);
 
 const colors = [
   "#D45D6D", // 温暖的红色
@@ -39,7 +93,7 @@ const polygons = [
 ].map((points) => new Polygon(points, colors[i++], colors[i++]));
 const circles = [new Circle(400, 400, 50), new Circle(500, 500, 50)];
 
-const shapes = polygons.concat(circles);
+const shapes = polygons.concat(circles).concat(longmaoShape).concat(rectShape);
 
 function redraw() {
   shapes.forEach((p) => {
@@ -79,6 +133,7 @@ function showCollisionMsg() {
 function detectCollision() {
   for (const p of shapes) {
     if (p !== movingShape && movingShape.collidesWith(p)) {
+      console.log(p);
       showCollisionMsg();
       break;
     }
