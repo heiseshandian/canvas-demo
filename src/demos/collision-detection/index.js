@@ -4,6 +4,9 @@ import { Polygon } from "../shared/polygon.js";
 import { Sprite } from "../shared/sprite.js";
 import { ImagePainter } from "../shared/image-painter.js";
 import { SpriteShape } from "../shared/sprite-shape.js";
+import { AnimationTimer } from "../shared/animation-timer.js";
+import { MinimumTranslationVector } from "../shared/minimum-translation-vector.js";
+import { Vector } from "../shared/vector.js";
 
 /**
  * @type {HTMLCanvasElement}
@@ -15,6 +18,11 @@ canvas.width = 800;
 canvas.height = 600;
 
 ctx.globalAlpha = 0.9;
+
+const velocity = {
+  x: 200, // pixes per second
+  y: 200,
+};
 
 const longmao = new Sprite("longmao", new ImagePainter("./longmao.png"));
 longmao.left = 100;
@@ -102,13 +110,9 @@ function redraw() {
   });
 }
 
-let lastPosition = null;
-let isMoving = false;
 let movingShape = null;
 
 function resetMovingVariables() {
-  lastPosition = null;
-  isMoving = false;
   movingShape = null;
 }
 
@@ -122,52 +126,107 @@ function updateMovingShape(x, y) {
   }
 }
 
-function showCollisionMsg() {
-  ctx.save();
-  ctx.fillStyle = "red";
-  ctx.font = "16px serif";
-  ctx.fillText("collision detected", 50, 50);
-  ctx.restore();
+function bindEvents() {
+  canvas.addEventListener("click", ({ offsetX, offsetY }) => {
+    updateMovingShape(offsetX, offsetY);
+
+    if (movingShape) {
+      startAnimation();
+    }
+  });
 }
 
-function detectCollision() {
-  for (const p of shapes) {
-    if (p !== movingShape) {
-      const mtv = movingShape.collidesWith(p);
-      if (mtv.overlap !== 0) {
-        showCollisionMsg();
-        break;
-      }
+/**
+ *
+ * @param {MinimumTranslationVector} mtv
+ */
+function separate(mtv) {
+  if (!mtv.axis) {
+    mtv.axis = new Vector(velocity.x, velocity.y).normalize();
+  }
+
+  let dx = mtv.axis.x * mtv.overlap;
+  let dy = mtv.axis.y * mtv.overlap;
+
+  if (dx * velocity.x > 0) {
+    dx = -dx;
+  }
+  if (dy * velocity.y > 0) {
+    dy = -dy;
+  }
+
+  movingShape.move(dx, dy);
+}
+
+function handleCollision() {
+  let found = false;
+  for (const shape of shapes) {
+    if (shape === movingShape) {
+      continue;
     }
+
+    const mtv = movingShape.collidesWith(shape);
+    if (mtv.overlap !== 0) {
+      separate(mtv);
+      found = true;
+    }
+  }
+
+  if (found) {
+    velocity.x = -velocity.x;
+    velocity.y = -velocity.y;
+    stopAnimation();
   }
 }
 
-function bindEvents() {
-  canvas.addEventListener("mousedown", ({ offsetX, offsetY }) => {
-    isMoving = true;
-    lastPosition = { offsetX, offsetY };
-    updateMovingShape(offsetX, offsetY);
-  });
+function handleOutFfBound() {
+  if (!movingShape) {
+    return;
+  }
 
-  canvas.addEventListener("mousemove", ({ offsetX, offsetY }) => {
-    if (!isMoving || !movingShape) {
-      return;
-    }
+  const { left, top, width, height } = movingShape.getBoundingBox();
+  if (left < 0 || left + width > canvas.width) {
+    velocity.x = -velocity.x;
+  }
+  if (top < 0 || top + height > canvas.height) {
+    velocity.y = -velocity.y;
+  }
+}
 
-    const deltaX = offsetX - lastPosition.offsetX;
-    const deltaY = offsetY - lastPosition.offsetY;
-    movingShape.move(deltaX, deltaY);
+const timer = new AnimationTimer();
+let lastFrameTime = performance.now();
+function animate(time) {
+  if (!timer.isRunning()) {
+    return;
+  }
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    redraw();
-    detectCollision();
+  const elapsed = time - lastFrameTime;
+  lastFrameTime = time;
+  const fps = 1000 / elapsed;
+  const dx = velocity.x / fps;
+  const dy = velocity.y / fps;
+  movingShape.move(dx, dy);
+  handleOutFfBound();
+  handleCollision();
 
-    lastPosition = { offsetX, offsetY };
-  });
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  redraw();
 
-  canvas.addEventListener("mouseup", () => {
-    resetMovingVariables();
-  });
+  requestAnimationFrame(animate);
+}
+
+function startAnimation() {
+  lastFrameTime = performance.now();
+  timer.start();
+
+  requestAnimationFrame(animate);
+}
+
+function stopAnimation() {
+  timer.stop();
+  timer.reset();
+
+  resetMovingVariables();
 }
 
 bindEvents();

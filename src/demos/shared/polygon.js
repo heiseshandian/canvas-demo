@@ -85,8 +85,8 @@ export class Polygon extends Shape {
   getBoundingBox() {
     let minX = Infinity;
     let minY = Infinity;
-    let maxX = Infinity;
-    let maxY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
 
     this.points.forEach(({ x, y }) => {
       minX = Math.min(minX, x);

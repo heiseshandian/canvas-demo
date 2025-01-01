@@ -3,10 +3,8 @@ export class AnimationTimer {
    *
    * @param {number} duration
    */
-  constructor(duration = Infinity) {
-    this.duration = duration;
-
-    this.reset();
+  constructor(duration) {
+    this.reset(duration);
   }
 
   start() {
@@ -14,6 +12,10 @@ export class AnimationTimer {
       this.startTime = performance.now() - this.elapsed;
       this.running = true;
     }
+  }
+
+  isRunning() {
+    return this.running;
   }
 
   stop() {
@@ -35,7 +37,8 @@ export class AnimationTimer {
     return this.getElapsedTime() >= this.duration;
   }
 
-  reset() {
+  reset(duration = Infinity) {
+    this.duration = duration;
     this.startTime = null;
     this.elapsed = 0;
     this.running = false;
