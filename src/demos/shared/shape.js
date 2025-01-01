@@ -75,4 +75,8 @@ export class Shape {
   getBoundingBox() {
     throw new Error("Should be implemented by the sub class");
   }
+
+  center() {
+    throw new Error("Should be implemented by the sub class");
+  }
 }

@@ -3,6 +3,7 @@ import { Vector } from "./vector.js";
 import { Projection } from "./projection.js";
 import { polygonCollidesWithCircle } from "./utils.js";
 import { BoundingBox } from "./bounding-box.js";
+import { Point } from "./point.js";
 
 export class Polygon extends Shape {
   constructor(points, strokeStyle = "black", fillStyle = "black") {
@@ -96,5 +97,18 @@ export class Polygon extends Shape {
     });
 
     return new BoundingBox(minX, minY, maxX - minX, maxY - minY);
+  }
+
+  center() {
+    const p = new Point(0, 0);
+    this.points.forEach(({ x, y }) => {
+      p.x += x;
+      p.y += y;
+    });
+
+    p.x /= this.points.length;
+    p.y /= this.points.length;
+
+    return p;
   }
 }

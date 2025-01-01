@@ -4,6 +4,7 @@ import { Projection } from "./projection.js";
 import { polygonCollidesWithCircle } from "./utils.js";
 import { MinimumTranslationVector } from "./minimum-translation-vector.js";
 import { BoundingBox } from "./bounding-box.js";
+import { Point } from "./point.js";
 
 export class Circle extends Shape {
   constructor(
@@ -65,5 +66,9 @@ export class Circle extends Shape {
   getBoundingBox() {
     const { x, y, radius } = this;
     return new BoundingBox(x - radius, y - radius, radius * 2, radius * 2);
+  }
+
+  center() {
+    return new Point(this.x, this.y);
   }
 }

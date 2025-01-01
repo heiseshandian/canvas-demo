@@ -1,7 +1,12 @@
 export class Vector {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
+  constructor(xOrPoint, y) {
+    if (xOrPoint && xOrPoint.x !== undefined) {
+      this.x = xOrPoint.x;
+      this.y = xOrPoint.y;
+    } else {
+      this.x = xOrPoint;
+      this.y = y;
+    }
   }
 
   magnitude() {

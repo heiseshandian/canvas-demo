@@ -7,6 +7,7 @@ import { SpriteShape } from "../shared/sprite-shape.js";
 import { AnimationTimer } from "../shared/animation-timer.js";
 import { MinimumTranslationVector } from "../shared/minimum-translation-vector.js";
 import { Vector } from "../shared/vector.js";
+import { Shape } from "../shared/shape.js";
 
 /**
  * @type {HTMLCanvasElement}
@@ -111,9 +112,11 @@ function redraw() {
 }
 
 let movingShape = null;
+let isMoving = false;
 
 function resetMovingVariables() {
   movingShape = null;
+  isMoving = false;
 }
 
 function updateMovingShape(x, y) {
@@ -128,10 +131,13 @@ function updateMovingShape(x, y) {
 
 function bindEvents() {
   canvas.addEventListener("click", ({ offsetX, offsetY }) => {
+    isMoving = !isMoving;
     updateMovingShape(offsetX, offsetY);
 
-    if (movingShape) {
+    if (isMoving && movingShape) {
       startAnimation();
+    } else {
+      stopAnimation();
     }
   });
 }
@@ -158,8 +164,57 @@ function separate(mtv) {
   movingShape.move(dx, dy);
 }
 
+/**
+ *
+ * @param {MinimumTranslationVector} mtv
+ * @param {Shape} collider
+ * @param {Shape} collidee
+ */
+function fixMTVAxisDirection(mtv, collider, collidee) {
+  if (!mtv.axis) {
+    return;
+  }
+
+  const d = new Vector(collider.center()).edge(collidee.center());
+  // cos(θ) 的值大于0 说明夹角在 0-90 度，同向
+  if (d.dotProduct(mtv.axis) > 0) {
+    mtv.axis.x = -mtv.axis.x;
+    mtv.axis.y = -mtv.axis.y;
+  }
+}
+
+/**
+ * 将移动的图形移动到碰撞的边界，反弹回去
+ *
+ * @param {MinimumTranslationVector} mtv
+ * @param {Shape} collider
+ * @param {Shape} collidee
+ */
+function bounce(mtv, collider, collidee) {
+  const velocityVector = new Vector(velocity.x, velocity.y);
+  const velocityUnitVector = velocityVector.normalize();
+  const velocityMagnitude = velocityVector.magnitude();
+
+  fixMTVAxisDirection(mtv, collider, collidee);
+
+  const perpendicular = mtv.axis
+    ? mtv.axis.perpendicular()
+    : velocityVector.normal();
+
+  separate(mtv);
+
+  // θoutgoing = 2 × (V ⋅ L) / (L ⋅ L) × L – V
+  const vDotL = velocityUnitVector.dotProduct(perpendicular);
+  const lDotL = perpendicular.dotProduct(perpendicular);
+  const ratio = vDotL / lDotL;
+
+  velocity.x =
+    (2 * ratio * perpendicular.x - velocityUnitVector.x) * velocityMagnitude;
+  velocity.y =
+    (2 * ratio * perpendicular.y - velocityUnitVector.y) * velocityMagnitude;
+}
+
 function handleCollision() {
-  let found = false;
   for (const shape of shapes) {
     if (shape === movingShape) {
       continue;
@@ -167,15 +222,8 @@ function handleCollision() {
 
     const mtv = movingShape.collidesWith(shape);
     if (mtv.overlap !== 0) {
-      separate(mtv);
-      found = true;
+      bounce(mtv, movingShape, shape);
     }
-  }
-
-  if (found) {
-    velocity.x = -velocity.x;
-    velocity.y = -velocity.y;
-    stopAnimation();
   }
 }
 
@@ -231,3 +279,8 @@ function stopAnimation() {
 
 bindEvents();
 redraw();
+
+ctx.fillStyle = "cornflowerblue";
+ctx.font = "24px Arial";
+ctx.fillText("Click on a shape to animate it", 20, 40);
+ctx.fillText("Click on the background to stop animating", 20, 65);
